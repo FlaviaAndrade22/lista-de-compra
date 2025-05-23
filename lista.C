@@ -1,33 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
+
 
 // Estrutura da lista encadeada
 typedef struct Item {
     char *nome;
     int quantidade;
+    double precoUnidade;
     struct Item* proximo;
 } Item;
 
 Item* inicio = NULL;
 
 // Criar novo item
-Item* criarItem(const char* nome, int quantidade) {
+Item* criarItem(const char* nome, int quantidade, double precoUnidade) {
     Item* novo = (Item*)malloc(sizeof(Item));
     if (novo == NULL) {
-        printf("Erro ao alocar memÃ³ria para o item.\n");
+        printf("Erro ao alocar memória para o item.\n");
         exit(1);
     }
 
     novo->nome = (char*)malloc(strlen(nome) + 1);
     if (novo->nome == NULL) {
-        printf("Erro ao alocar memÃ³ria para o nome.\n");
+        printf("Erro ao alocar memória para o nome.\n");
         free(novo);
         exit(1);
     }
 
     strcpy(novo->nome, nome);
     novo->quantidade = quantidade;
+    novo->precoUnidade = precoUnidade;
     novo->proximo = NULL;
 
     return novo;
@@ -37,13 +41,16 @@ Item* criarItem(const char* nome, int quantidade) {
 void adicionarItem() {
     char nome[100];
     int quantidade;
+    double precoUnidade;
 
     printf("Nome do item: ");
     scanf(" %[^\n]", nome);
     printf("Quantidade: ");
     scanf("%d", &quantidade);
+    printf("Preço da unidade: ");
+    scanf("%lf", &precoUnidade);
 
-    Item* novo = criarItem(nome, quantidade);
+    Item* novo = criarItem(nome, quantidade, precoUnidade);
 
     if (inicio == NULL) {
         inicio = novo;
@@ -55,23 +62,32 @@ void adicionarItem() {
         temp->proximo = novo;
     }
 
-    printf("Item adicionado com sucesso!\n");
+    printf("\nItem adicionado com sucesso!\n");
 }
 
 // Listar itens
 void listarItens() {
+    
     if (inicio == NULL) {
         printf("Lista de compras vazia.\n");
         return;
     }
-
+    
     printf("\n--- Lista de Compras ---\n");
     Item* temp = inicio;
+
     int i = 1;
+    double precoFinal = 0.0;
+
     while (temp != NULL) {
-        printf("%d. %s - %d unidade(s)\n", i++, temp->nome, temp->quantidade);
+        double precoTotalitem = temp->quantidade * temp->precoUnidade;
+        printf("%d. %s - %d unidade(s) - R$: %.2lf (unidade) - R$: %.2lf (total do item)\n", i++, temp->nome, temp->quantidade, temp->precoUnidade, precoTotalitem);
+
+        precoFinal += precoTotalitem;
         temp = temp->proximo;
     }
+    printf("-------------------------\n");
+    printf("Valor Total da Lista: R$: %.2lf\n", precoFinal);
 }
 
 // Buscar item
@@ -83,13 +99,13 @@ void buscarItem() {
     Item* temp = inicio;
     while (temp != NULL) {
         if (strcmp(temp->nome, nome) == 0) {
-            printf("Item encontrado: %s - %d unidade(s)\n", temp->nome, temp->quantidade);
+            printf("Item encontrado: %s - %d unidade(s) - R$:%.2lf (unidade)\n", temp->nome, temp->quantidade, temp->precoUnidade);
             return;
         }
         temp = temp->proximo;
     }
 
-    printf("Item nÃ£o encontrado.\n");
+    printf("Item não encontrado.\n");
 }
 
 // Editar item
@@ -103,16 +119,20 @@ void editarItem() {
         if (strcmp(temp->nome, nome) == 0) {
             char novoNome[100];
             int novaQtd;
+            double novoPrecoUnidade;
 
             printf("Novo nome: ");
             scanf(" %[^\n]", novoNome);
             printf("Nova quantidade: ");
             scanf("%d", &novaQtd);
+            printf("Novo preço por unidade: ");
+            scanf("%lf", &novoPrecoUnidade);
 
             free(temp->nome);
             temp->nome = (char*)malloc(strlen(novoNome) + 1);
             strcpy(temp->nome, novoNome);
             temp->quantidade = novaQtd;
+            temp->precoUnidade = novoPrecoUnidade;
 
             printf("Item editado com sucesso!\n");
             return;
@@ -120,7 +140,7 @@ void editarItem() {
         temp = temp->proximo;
     }
 
-    printf("Item nÃ£o encontrado.\n");
+    printf("Item não encontrado.\n");
 }
 
 // Remover item
@@ -147,7 +167,7 @@ void removerItem() {
         atual = atual->proximo;
     }
 
-    printf("Item nÃ£o encontrado.\n");
+    printf("Item não encontrado.\n");
 }
 
 // Esvaziar lista
@@ -175,7 +195,7 @@ void menu() {
         printf("5. Buscar item\n");
         printf("6. Esvaziar lista\n");
         printf("7. Sair\n");
-        printf("Escolha uma opÃ§Ã£o: ");
+        printf("Escolha uma opção: ");
         scanf("%d", &opcao);
 
         switch (opcao) {
@@ -186,13 +206,15 @@ void menu() {
             case 5: buscarItem(); break;
             case 6: esvaziarLista(); break;
             case 7: esvaziarLista(); printf("Saindo...\n"); break;
-            default: printf("OpÃ§Ã£o invÃ¡lida.\n");
+            default: printf("Opção inválida.\n");
         }
     } while (opcao != 7);
 }
 
-// FunÃ§Ã£o principal obrigatÃ³ria
+// Função principal obrigatória
 int main() {
+
+    setlocale(LC_ALL, "");
     menu();
     return 0;
 }
